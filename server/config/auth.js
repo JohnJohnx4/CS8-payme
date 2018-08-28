@@ -1,4 +1,5 @@
-const passport = require('passport');
+const passport = require('passport')
+  , OAuthStrategy = require('passport-oauth').OAuthStrategy;
 const LocalStrategy = require('passport-local');
 const User = require('../models/users');
 const ExtractJwt = require('passport-jwt').ExtractJwt;
@@ -20,10 +21,11 @@ function makeToken(user) {
 
   return jwt.sign(payload, process.env.SECRET, options);
 }
+
 // This is Authorization this uses the username/pass to login
-const localStrategy = new LocalStrategy(function(username, password, done) {
+const localStrategy = new LocalStrategy(function (username, password, done) {
   // console.log(username, password);
-  User.findOne({ username }, function(err, user) {
+  User.findOne({ username }, function (err, user) {
     // console.log(`user: ${user.checkpassword}`);
     if (err) {
       return done(err);
@@ -45,6 +47,7 @@ const localStrategy = new LocalStrategy(function(username, password, done) {
     });
   });
 });
+
 // Bearer is where it pulls token from
 const jwtOptions = {
   jwtFromRequest: ExtractJwt.fromExtractors([
@@ -56,7 +59,7 @@ const jwtOptions = {
 };
 
 // This is the restricted middleware. This uses jwt
-const jwtStrategy = new JwtStrategy(jwtOptions, function(load, done) {
+const jwtStrategy = new JwtStrategy(jwtOptions, function (load, done) {
   // console.log(req);
   // console.log(jwtOptions, 'jwtOptions');
   // console.log(load, 'load');
@@ -78,6 +81,23 @@ const jwtStrategy = new JwtStrategy(jwtOptions, function(load, done) {
     });
 });
 
+
+// Options for passport.js to use OAuth
+const OAuthOptions = {
+  requestTokenURL: 'https://www.provider.com/oauth/request_token',
+  accessTokenURL: 'https://www.provider.com/oauth/access_token',
+  userAuthorizationURL: 'https://www.provider.com/oauth/authorize',
+  consumerKey: '123-456-789',
+  consumerSecret: 'shhh-its-a-secret',
+  callbackURL: 'https://www.example.com/auth/provider/callback'
+}
+
+const OAuthStrategy = new OAuthStrategy(OAuthOptions, function(token, secret, profile, done) {
+  // TODO
+})
+
+
+passport.use(OAuthStrategy);
 passport.use(localStrategy);
 passport.use(jwtStrategy);
 
